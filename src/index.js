@@ -9,7 +9,7 @@ var app = express();
 if (process.env.NODE_ENV === 'production') {
 	mongoose.connect(
 		`mongodb://${process.env.ADMIN_USERNAME}:${process.env
-			.ADMIN_DBPASS}@idols.ituwcssa.com:27017/idol-finals-2019?authSource=admin`,
+			.ADMIN_DBPASS}@172.105.28.135:27017/idol-finals-2019?authSource=admin`,
 		{
 			useNewUrlParser: true,
 			useUnifiedTopology: true
@@ -24,6 +24,10 @@ db.on('error', error => {
 });
 db.once('open', () => {
 	runApp();
+});
+
+app.get('/', (req, res) => {
+	res.send('Hello World!');
 });
 
 function runApp() {

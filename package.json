@@ -2,11 +2,13 @@
 	"name": "idol-finals-2019",
 	"version": "1.0.0",
 	"description": "Voting system for KWCSSA idol finals 2019",
-	"main": "index.js",
+	"main": "src/index.js",
 	"scripts": {
-		"start": "node index.js",
-		"dev": "nodemon index.js",
-		"pm2": "NODE_ENV=production pm2 start index.js --name idol-finals-2019"
+		"start": "node src/index.js",
+		"build": "rimraf ./build && copyfiles ./src/**/* package.json .env ./build/",
+		"dev": "nodemon src/index.js",
+		"deploy": "npm install --production && npm run pm2",
+		"pm2": "NODE_ENV=production pm2 start src/index.js --name idol-finals-2019"
 	},
 	"repository": {
 		"type": "git",
@@ -25,6 +27,8 @@
 		"winston": "^3.2.1"
 	},
 	"devDependencies": {
-		"nodemon": "^1.19.4"
+		"copyfiles": "^2.1.1",
+		"nodemon": "^1.19.4",
+		"rimraf": "^3.0.0"
 	}
 }

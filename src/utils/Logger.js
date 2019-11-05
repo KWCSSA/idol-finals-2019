@@ -2,7 +2,7 @@ const winston = require('winston');
 var fs = require('fs');
 const path = require('path');
 
-const logDir = path.join(__dirname, '..', 'logs');
+const logDir = path.join(__dirname, '..', '..', 'logs');
 
 if (!fs.existsSync(logDir)) {
 	fs.mkdirSync(logDir);
@@ -20,8 +20,8 @@ const sysLogger = winston.createLogger({
 	format: logFormat,
 	transports: [
 		new winston.transports.Console(),
-		new winston.transports.File({ level: 'error', filename: path.join(__dirname, '..', 'logs', 'sysError.log') }),
-		new winston.transports.File({ filename: path.join(__dirname, '..', 'logs', 'sysInfo.log') })
+		new winston.transports.File({ level: 'error', filename: path.join(logDir, 'sysError.log') }),
+		new winston.transports.File({ filename: path.join(logDir, 'sysInfo.log') })
 	]
 });
 
