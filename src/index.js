@@ -37,8 +37,19 @@ const voteSchema = new Schema({
   C_vote: Number,
   D_vote: Number
 });
+const voteMode = new Schema({
+  value: String,
+  label: String
+});
 
 const voteModel = mongoose.model("voteModel", voteSchema);
+
+var data = {
+  mode = {
+    value: "1/4", label: "四选一"
+  },
+  state = false
+}
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -58,6 +69,22 @@ app.put("/modifyVotes", (req, res) => {
 app.put("/changeMode", (req, res) => {
   res.send("voting mode updated");
 });
+
+//change voting state
+app.put("/changeState", (req, res) => {
+  res.send("voting state updated");
+});
+
+
+
+
+app.get("/currentMode",(req,res)=>{
+  res.send("get current mode");
+})
+
+app.get("/currentState",(req,res)=>{
+  res.send("get current state");
+})
 
 function runApp() {
   const PORT = process.env.PORT || 9898;
