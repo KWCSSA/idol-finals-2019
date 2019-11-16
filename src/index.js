@@ -37,19 +37,20 @@ const voteSchema = new Schema({
   C_vote: Number,
   D_vote: Number
 });
-const voteMode = new Schema({
-  value: String,
-  label: String
+const modeSchema = new Schema({
+  value: String
 });
 
 const voteModel = mongoose.model("voteModel", voteSchema);
+const modeModel = mongoose.model("modeModel", modeSchema);
 
 var data = {
   mode: {
-    value: "1/4",
-    label: "四选一"
+    id: "current-mode",
+    value: "1/4"
   },
-  state: false
+  state: false,
+  currentMatch: ""
 };
 
 app.get("/", (req, res) => {
@@ -67,46 +68,77 @@ app.post("/initVotes", (req, res) => {
   newVote.save(function(err, back) {
     if (err) return handleError(err);
     else {
+      data.currentMatch = back.id;
       res.send({ status: "success", id: back.id });
+    }
+  });
+});
+
+//init mode
+app.post("/initMode", (req, res) => {
+  var newMode = new modeModel({
+    id: "current-mode",
+    value: "1/4"
+  });
+  newMode.save(function(err, back) {
+    if (err) return handleError(err);
+    else {
+      res.send({ status: "success" });
     }
   });
 });
 
 //get current votes
 app.get("/currentVotes", (req, res) => {
-  voteModel.findById(req.query.id, function(err, voteModels) {
-    console.log(voteModels);
-    res.send({ status: "success", current_vote: voteModels });
+  voteModel.findById(req.params.id, function(err, voteModels) {
+    if (err) return handleError(err);
+    else {
+      console.log(voteModels);
+      res.send({ status: "success", current_vote: voteModels });
+    }
   });
 });
 
 //modify votes
 app.put("/modifyVotes", (req, res) => {
-  // voteModel.findByIdAndUpdate(req.query.id, req.function(err, voteModels) {
-  //   res.send({ status: "success", current_vote: voteModels });
-  // });
-  console.log(req.body);
-  console.log(req.params);
-  console.log(req.query);
-  res.send({ status: "success" });
+  voteModel.findByIdAndUpdate(data.currentMatch, req.body.votes, function(err) {
+    if (err) return handleError(err);
+    else {
+      res.send({ status: "success" });
+    }
+  });
 });
 
 //change voting mode
 app.put("/changeMode", (req, res) => {
-  res.send("voting mode updated");
+  modeModel.findOneAndUpdate({ id: "current-mode" }, req.body.mode, function(
+    err,
+    docs
+  ) {
+    if (err) return handleError(err);
+    else {
+      res.send({ status: "success" });
+    }
+  });
 });
 
 //change voting state
 app.put("/changeState", (req, res) => {
-  res.send("voting state updated");
+  data.state = req.body.state;
+  res.send({ status: "success" });
 });
 
 app.get("/currentMode", (req, res) => {
-  res.send("get current mode");
+  modeModel.find({ id: "current-mode" }, function(err, docs) {
+    if (err) return handleError(err);
+    else {
+      res.send({ value: docs.value });
+    }
+  });
 });
 
 app.get("/currentState", (req, res) => {
-  res.send("get current state");
+  res.send({ state: data.state });
 });
 
 function runApp() {
