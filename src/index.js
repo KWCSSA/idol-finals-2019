@@ -45,24 +45,50 @@ const voteMode = new Schema({
 const voteModel = mongoose.model("voteModel", voteSchema);
 
 var data = {
-  mode = {
-    value: "1/4", label: "四选一"
+  mode: {
+    value: "1/4",
+    label: "四选一"
   },
-  state = false
-}
+  state: false
+};
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+//init votes
+app.post("/initVotes", (req, res) => {
+  var newVote = new voteModel({
+    A_vote: 0,
+    B_vote: 0,
+    C_vote: 0,
+    D_vote: 0
+  });
+  newVote.save(function(err, back) {
+    if (err) return handleError(err);
+    else {
+      res.send({ status: "success", id: back.id });
+    }
+  });
+});
+
 //get current votes
 app.get("/currentVotes", (req, res) => {
-  res.send("get current Votes ");
+  voteModel.findById(req.query.id, function(err, voteModels) {
+    console.log(voteModels);
+    res.send({ status: "success", current_vote: voteModels });
+  });
 });
 
 //modify votes
 app.put("/modifyVotes", (req, res) => {
-  res.send("votes modified");
+  // voteModel.findByIdAndUpdate(req.query.id, req.function(err, voteModels) {
+  //   res.send({ status: "success", current_vote: voteModels });
+  // });
+  console.log(req.body);
+  console.log(req.params);
+  console.log(req.query);
+  res.send({ status: "success" });
 });
 
 //change voting mode
@@ -75,16 +101,13 @@ app.put("/changeState", (req, res) => {
   res.send("voting state updated");
 });
 
-
-
-
-app.get("/currentMode",(req,res)=>{
+app.get("/currentMode", (req, res) => {
   res.send("get current mode");
-})
+});
 
-app.get("/currentState",(req,res)=>{
+app.get("/currentState", (req, res) => {
   res.send("get current state");
-})
+});
 
 function runApp() {
   const PORT = process.env.PORT || 9898;
