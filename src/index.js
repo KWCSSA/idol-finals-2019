@@ -32,12 +32,14 @@ db.once("open", () => {
 const Schema = mongoose.Schema;
 
 const voteSchema = new Schema({
+  id: String,
   A_vote: Number,
   B_vote: Number,
   C_vote: Number,
   D_vote: Number
 });
 const modeSchema = new Schema({
+  id: String,
   value: String
 });
 
@@ -59,7 +61,9 @@ app.get("/", (req, res) => {
 
 //init votes
 app.post("/initVotes", (req, res) => {
+  data.currentMatch = Date.now().toString();
   var newVote = new voteModel({
+    id: data.currentMatch,
     A_vote: 0,
     B_vote: 0,
     C_vote: 0,
@@ -68,8 +72,7 @@ app.post("/initVotes", (req, res) => {
   newVote.save(function(err, back) {
     if (err) return handleError(err);
     else {
-      data.currentMatch = back.id;
-      res.send({ status: "success", id: back.id });
+      res.send({ status: "success", currentMatch: data.currentMatch });
     }
   });
 });
