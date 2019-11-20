@@ -57,8 +57,22 @@ const modeSchema = new Schema({
   value: String
 });
 
+const singleVoteSchema = new Schema({
+  id: String,
+  matchID: String,
+  candidate: Number,
+  time: Date
+});
+
+const idSchema = new Schema({
+  id: String,
+  loginStatus: Boolean
+})
+
 const voteModel = mongoose.model("voteModel", voteSchema);
 const modeModel = mongoose.model("modeModel", modeSchema);
+const singleVoteModel = mongoose.model("singleVoteModel", singleVoteSchema);
+const idModel = mongoose.model("idModel", idSchema);
 
 var data = {
   mode: {
@@ -72,6 +86,11 @@ var data = {
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+const makeid = () => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
 //----------------mode--------------------------
 
 //init mode
@@ -177,7 +196,62 @@ app.put("/modifyVotes", (req, res) => {
     function(err) {
       if (err) return handleError(err);
       else {
+        
         res.send({ status: "success" });
+      }
+    }
+  );
+});
+
+// user voting using ID
+app.post("/voteCandidate", (req, res) => {
+  sysLogger.log("info", "/voteCandidate called");
+
+  // if the mode value is "1/2", reject vote=3 and vote=4
+  // and if the mode value is "1/3", reject vote=4
+  
+  if (data.mode.value === "1/2" && (req.body.candidate == 3 || req.body.candidate == 4)){
+    res.send({status: "failure: 1/2"});
+  } else if (data.mode.value === "1/3" && req.body.candidate == 4){
+    res.send({status: "failure: 1/3"});
+  }
+
+  var newSingleVote = new singleVoteModel({
+    id: req.body.id,
+    matchID: req.body.matchID,
+    candidate: req.body.candidate,
+    time: req.body.time
+  });
+  newSingleVote.save(function(err, back) {
+    if (err) return handleError(err);
+  });
+
+  // find the voteModel with the corresponding MatchID and modify it based on req.data.candidate
+
+  voteModel.find(
+    { id: data.currentMatch},
+    function(err, voteModels){
+      if (err) return handleError(err);
+      else {
+        if (voteModels[0] == null) res.send({status: "failure: no vote models"});
+        voteModel.findOneAndUpdate(
+          { id: data.currentMatch },
+          {
+            A_vote: (req.body.candidate === 1) ? voteModels[0].A_vote + 1: voteModels[0].A_vote,
+            B_vote: (req.body.candidate === 2) ? voteModels[0].B_vote + 1: voteModels[0].B_vote,
+            C_vote: (req.body.candidate === 3) ? voteModels[0].C_vote + 1: voteModels[0].C_vote,
+            D_vote: (req.body.candidate === 4) ? voteModels[0].D_vote + 1: voteModels[0].D_vote,
+          },
+          {
+            new: true
+          },
+          function(err) {
+            if (err) return handleError(err);
+            else {
+              res.send({ status: "success" });
+            }
+          }
+        );
       }
     }
   );
@@ -202,6 +276,79 @@ app.get("/currentState", (req, res) => {
   res.send({ state: data.state });
 });
 
+// ----------------login --------------------
+
+// user login using ID
+app.post("/login", (req, res) => {
+  sysLogger.log("info", "/login called");
+  var id = req.body.id;
+  sysLogger.log("info", "new login attempt: id = " + id);
+  idModel.find({ id: id }, function(err, idModels) {
+    if (err) return handleError(err);
+    else {
+      var idstatus = idModels[0].loginStatus;
+      sysLogger.log("info", "id: " + id + ", status: " + idstatus);
+      if (idstatus === false){
+        idModel.findOneAndUpdate(
+          {id: id}, 
+          {loginStatus: true},
+          {new: true},
+          function(err, docs) {
+            if (err) return handleError(err);
+            else {
+              res.send({ status: "success"});
+            }
+          }
+        );
+      } else if (idstatus === true){
+        res.send({status: "already logged in"});
+      } else if (idstatus === undefined){
+        res.send({status: "id not found"});
+      }
+    }
+  });
+});
+
+app.get("/initID", (req, res) => {
+  const IDamount = 5;
+  for (var i = 0; i < IDamount; i++){
+    var randomID = makeid();
+    var newID = new idModel({
+      id: randomID,
+      loginStatus: false
+    });
+    newID.save(function(err, back) {
+      if (err) return handleError(err);
+      else {
+        sysLogger.log("info", "new ID: " + randomID + " created");
+      }
+    });
+  }
+  res.send({status: "success"});
+});
+
+app.get("/allID", (req, res) => {
+  idModel.find({}, function(err, idModels) {
+    if (err) return handleError(err);
+    else {
+      var allIDs = {};
+      idModels.forEach((id) => {
+        allIDs[id] = true;
+      });
+      res.send(allIDs);
+    }
+  })
+});
+
+app.get("/deleteAllID", (req, res) => {
+  idModel.deleteMany({loginStatus: false}, function(err, back) {
+    if (err) return handleError(err);
+    else {
+      res.send({status:"success"});
+    }
+  });
+})
+// ----------------------------------------------
 function runApp() {
   const PORT = process.env.PORT || 9898;
   app.listen(PORT, () => {
