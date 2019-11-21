@@ -4,12 +4,11 @@ import axios from 'axios';
 var serverAddress = '';
 
 if (process.env.NODE_ENV !== 'production') {
-	serverAddress = 'http://localhost:4000';
-	axios.defaults.withCredentials = true;
+	serverAddress = 'http://localhost:9898';
 }
 
 class Results extends React.Component {
-	state = { results: { votesA: 10, votesB: 20, votesC: 30, votesD: 50 } };
+	state = { results: { votesA: 0, votesB: 0, votesC: 0, votesD: 0 }, showResults: [ false, false, false, false ] };
 
 	componentDidMount() {
 		setInterval(() => {
@@ -22,7 +21,27 @@ class Results extends React.Component {
 					}
 				}
 			});
-		}, 1000);
+			axios.get(`${serverAddress}/api/format`).then(res => {
+				if (res.status === 200) {
+					if (res.data.format === '4-1') {
+						let showResults = [ true, true, true, true ];
+						if (JSON.stringify(this.state.showResults) !== JSON.stringify(showResults)) {
+							this.setState({ showResults });
+						}
+					} else if (res.data.format === '3-1') {
+						let showResults = [ true, true, true, false ];
+						if (JSON.stringify(this.state.showResults) !== JSON.stringify(showResults)) {
+							this.setState({ showResults });
+						}
+					} else if (res.data.format === '2-1') {
+						let showResults = [ true, true, false, false ];
+						if (JSON.stringify(this.state.showResults) !== JSON.stringify(showResults)) {
+							this.setState({ showResults });
+						}
+					}
+				}
+			});
+		}, 500);
 	}
 
 	render() {
@@ -33,7 +52,12 @@ class Results extends React.Component {
 				this.state.results.votesC,
 				this.state.results.votesD
 			) * 1.3;
-		var styles = [ { background: 'white' }, { background: 'white' }, { background: 'white' }, { background: 'white' } ];
+		var styles = [
+			{ background: '#ffc107' },
+			{ background: '#ffc107' },
+			{ background: '#ffc107' },
+			{ background: '#ffc107' }
+		];
 		if (max === 0) {
 			styles[0].height = 0 + '%';
 			styles[1].height = 0 + '%';
@@ -45,60 +69,71 @@ class Results extends React.Component {
 			styles[2].height = 100 * this.state.results.votesC / max + '%';
 			styles[3].height = 100 * this.state.results.votesD / max + '%';
 		}
-
-		console.log(styles);
 		return (
 			<div style={{ height: '100vh', width: '100vw', background: 'black', color: 'white' }}>
-				<div
-					style={{ height: '15vh', width: '100vw', border: '1px solid white' }}
-					className='d-flex justify-content-center align-items-center'
-				>
-					1
+				<div style={{ height: '15vh', width: '100vw' }} className='d-flex justify-content-center align-items-center'>
+					<img src='/banner.jpg' style={{ maxHeight: '100%', maxWidth: '100%' }} alt='banner' />
 				</div>
 				<div
 					style={{ height: '85vh', width: '100vw' }}
 					className='d-flex flex-row justify-content-center align-items-center'
 				>
-					<div
-						className='d-flex flex-column justify-content-end align-items-center'
-						style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
-					>
-						<h3>{this.state.results.votesA}</h3>
-						<div className='w-100 mt-2' style={styles[0]} />
-						<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-							A
+					{this.state.showResults[0] ? (
+						<div
+							className='d-flex flex-column justify-content-end align-items-center'
+							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+						>
+							<h3>{this.state.results.votesA}</h3>
+							<div className='w-100 mt-2' style={styles[0]} />
+							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
+								A
+							</div>
 						</div>
-					</div>
-					<div
-						className='d-flex flex-column justify-content-end align-items-center'
-						style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
-					>
-						<h3>{this.state.results.votesB}</h3>
-						<div className='w-100 mt-2' style={styles[1]} />
-						<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-							B
+					) : (
+						''
+					)}
+					{this.state.showResults[1] ? (
+						<div
+							className='d-flex flex-column justify-content-end align-items-center'
+							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+						>
+							<h3>{this.state.results.votesB}</h3>
+							<div className='w-100 mt-2' style={styles[1]} />
+							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
+								B
+							</div>
 						</div>
-					</div>
-					<div
-						className='d-flex flex-column justify-content-end align-items-center'
-						style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
-					>
-						<h3>{this.state.results.votesC}</h3>
-						<div className='w-100 mt-2' style={styles[2]} />
-						<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-							C
+					) : (
+						''
+					)}
+					{this.state.showResults[2] ? (
+						<div
+							className='d-flex flex-column justify-content-end align-items-center'
+							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+						>
+							<h3>{this.state.results.votesC}</h3>
+							<div className='w-100 mt-2' style={styles[2]} />
+							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
+								C
+							</div>
 						</div>
-					</div>
-					<div
-						className='d-flex flex-column justify-content-end align-items-center'
-						style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
-					>
-						<h3>{this.state.results.votesD}</h3>
-						<div className='w-100 mt-2' style={styles[3]} />
-						<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-							D
+					) : (
+						''
+					)}
+					{this.state.showResults[3] ? (
+						<div
+							className='d-flex flex-column justify-content-end align-items-center'
+							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+						>
+							<h3>{this.state.results.votesD}</h3>
+							<div className='w-100 mt-2' style={styles[3]} />
+							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
+								D
+							</div>
 						</div>
-					</div>
+					) : (
+						''
+					)}
 				</div>
 			</div>
 		);

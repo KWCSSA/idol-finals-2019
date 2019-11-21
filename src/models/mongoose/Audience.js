@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const audienceSchema = new Schema({
-	audienceID: Number,
+	audienceID: String,
 	votes: Array
 });
 audienceSchema.index({ audienceID: -1 });

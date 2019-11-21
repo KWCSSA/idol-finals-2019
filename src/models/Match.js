@@ -9,9 +9,11 @@ class Match {
 	}
 
 	async generateNewMatch(format) {
+		await this.endVoting();
 		var matchID = await generateNewMatch(format.replace('-', '选'));
 		this.matchID = matchID;
 		this.matchFormat = format;
+		this.matchState = 0;
 	}
 
 	getMatchID() {

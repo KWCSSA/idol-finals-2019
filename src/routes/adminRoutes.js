@@ -12,7 +12,7 @@ module.exports = (app, match) => {
 
 	app.get('/admin/logout', (req, res) => {
 		req.logout();
-		res.redirect('/admin');
+		res.send('success');
 	});
 
 	app.use('/api/admin', (req, res, next) => {
@@ -31,6 +31,10 @@ module.exports = (app, match) => {
 	app.post('/api/admin/generateNewMatch', async (req, res) => {
 		await match.generateNewMatch(req.body.matchFormat);
 		res.send({ id: match.getMatchID(), format: match.getMatchFormat() });
+	});
+
+	app.get('/api/admin/getMatchInfo', (req, res) => {
+		res.send({ id: match.getMatchID(), format: match.getMatchFormat(), isVoting: match.isVoting() });
 	});
 
 	app.post('/api/admin/startVoting', (req, res) => {

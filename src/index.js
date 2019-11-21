@@ -8,7 +8,6 @@ const LocalStrat = require('passport-local').Strategy;
 const session = require('express-session');
 const path = require('path');
 const MongoStore = require('connect-mongo')(session);
-const cors = require('cors');
 
 const { sysLogger } = require('./utils/Logger');
 
@@ -43,7 +42,7 @@ db.once('open', () => {
 });
 
 passport.use(
-	new LocalStrat((username, password, callback) => {
+	new LocalStrat(async (username, password, callback) => {
 		if (username === process.env.ADMIN_USERNAME) {
 			if (password !== process.env.ADMIN_PASSWORD) {
 				return callback(null, false);
@@ -117,8 +116,8 @@ var cookieConfig = {
 if (process.env.NODE_ENV === 'production') {
 	cookieConfig = {
 		maxAge: 1000 * 60 * 60 * 5,
-		httpOnly: false,
-		domain: 'vote19.ituwcssa.com',
+		httpOnly: true,
+		domain: 'idols.ituwcssa.com',
 		sameSite: true,
 		secure: true
 	};
@@ -139,6 +138,7 @@ app.use(passport.session());
 
 if (process.env.NODE_ENV !== 'production') {
 	console.log('In production, using cors');
+	const cors = require('cors');
 	app.use(
 		cors({
 			credentials: true,
@@ -166,6 +166,10 @@ app.get('/api/isVoting', (req, res) => {
 	res.send({ isVoting: match.isVoting() });
 });
 
+app.get('/api/format', (req, res) => {
+	res.send({ format: match.getMatchFormat() });
+});
+
 // serve react
 app.use(express.static('client/build'));
 app.get('*', (req, res) => {
@@ -173,7 +177,7 @@ app.get('*', (req, res) => {
 });
 
 function runApp() {
-	const PORT = process.env.PORT || 4000;
+	const PORT = process.env.PORT || 9898;
 	app.listen(PORT, () => {
 		sysLogger.log('info', '================================================================================');
 		sysLogger.log('info', `DB Connected, listening on PORT ${PORT}`);

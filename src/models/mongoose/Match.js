@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const matchSchema = new Schema({
-	matchID: Number,
+	matchID: String,
 	matchFormat: String,
 	votesA: Number,
 	votesB: Number,

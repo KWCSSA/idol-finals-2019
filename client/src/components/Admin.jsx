@@ -4,10 +4,10 @@ import axios from 'axios';
 import AdminContent from './AdminContent';
 
 var serverAddress = '';
+axios.defaults.withCredentials = true;
 
 if (process.env.NODE_ENV !== 'production') {
-	serverAddress = 'http://localhost:4000';
-	axios.defaults.withCredentials = true;
+	serverAddress = 'http://localhost:9898';
 }
 
 class Admin extends React.Component {
@@ -15,7 +15,6 @@ class Admin extends React.Component {
 
 	componentDidMount() {
 		axios.get(`${serverAddress}/admin/status`).then(res => {
-			console.log(res);
 			if (res.status === 200 && res.data.isAdmin) {
 				this.setState({ auth: true });
 			}

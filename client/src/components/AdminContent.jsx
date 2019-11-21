@@ -2,10 +2,10 @@ import React from 'react';
 import axios from 'axios';
 
 var serverAddress = '';
+axios.defaults.withCredentials = true;
 
 if (process.env.NODE_ENV !== 'production') {
-	serverAddress = 'http://localhost:4000';
-	axios.defaults.withCredentials = true;
+	serverAddress = 'http://localhost:9898';
 }
 
 class AdminContent extends React.Component {
@@ -18,8 +18,86 @@ class AdminContent extends React.Component {
 		voteInput: ''
 	};
 
+	componentDidMount() {
+		axios.get(`${serverAddress}/api/admin/getMatchInfo`).then(res => {
+			if (res.status === 200 && res.data.id) {
+				this.setState({
+					matchInfo: `${res.data.id} - ${res.data.format.replace('-', '选')}`
+				});
+				axios
+					.get(`${serverAddress}/api/results`)
+					.then(res => {
+						if (res.status === 200) {
+							this.setState(prevState => {
+								var newVotes = {
+									a: res.data.votesA,
+									b: res.data.votesB,
+									c: res.data.votesC,
+									d: res.data.votesD
+								};
+								if (JSON.stringify(newVotes) !== JSON.stringify(prevState.votes)) {
+									return {
+										votes: newVotes
+									};
+								}
+							});
+						}
+						if (res.data.isVoting) {
+							this.setState({
+								isVoting: true
+							});
+							this.updateInterval = setInterval(() => {
+								axios
+									.get(`${serverAddress}/api/isVoting`)
+									.then(res => {
+										if (res.status === 200) {
+											this.setState(prevState => {
+												if (prevState.isVoting !== res.data.isVoting) {
+													return { isVoting: res.data.isVoting };
+												}
+											});
+										} else {
+											window.location.reload();
+										}
+									})
+									.catch(err => {
+										window.location.reload();
+									});
+								axios
+									.get(`${serverAddress}/api/results`)
+									.then(res => {
+										if (res.status === 200) {
+											this.setState(prevState => {
+												var newVotes = {
+													a: res.data.votesA,
+													b: res.data.votesB,
+													c: res.data.votesC,
+													d: res.data.votesD
+												};
+												if (JSON.stringify(newVotes) !== JSON.stringify(prevState.votes)) {
+													return {
+														votes: newVotes
+													};
+												}
+											});
+										}
+									})
+									.catch(err => {
+										window.location.reload();
+									});
+							}, 100);
+						}
+					})
+					.catch(err => {
+						window.location.reload();
+					});
+			}
+		});
+	}
+
 	handleLogout() {
 		axios.get(`${serverAddress}/admin/logout`);
+		window.location.reload();
 	}
 
 	handleModeChange(value) {
@@ -64,18 +142,16 @@ class AdminContent extends React.Component {
 
 	startVoting() {
 		if (this.state.matchInfo !== 'null') {
-			var _this = this;
 			axios
 				.post(`${serverAddress}/api/admin/startVoting`, {})
 				.then(res => {
 					if (res.status === 200 && !res.data.error) {
-						_this.updateInterval = setInterval(() => {
+						this.updateInterval = setInterval(() => {
 							axios
 								.get(`${serverAddress}/api/isVoting`)
 								.then(res => {
 									if (res.status === 200) {
-										console.log(res.data);
-										_this.setState(prevState => {
+										this.setState(prevState => {
 											if (prevState.isVoting !== res.data.isVoting) {
 												return { isVoting: res.data.isVoting };
 											}
@@ -91,8 +167,7 @@ class AdminContent extends React.Component {
 								.get(`${serverAddress}/api/results`)
 								.then(res => {
 									if (res.status === 200) {
-										console.log(res.data);
-										_this.setState(prevState => {
+										this.setState(prevState => {
 											var newVotes = {
 												a: res.data.votesA,
 												b: res.data.votesB,
@@ -123,20 +198,18 @@ class AdminContent extends React.Component {
 
 	endVoting() {
 		if (this.state.matchInfo !== 'null') {
-			var _this = this;
 			axios.post(`${serverAddress}/api/admin/endVoting`, {}).then(res => {
 				if (res.status === 200 && !res.data.error) {
-					_this.setState({
+					this.setState({
 						isVoting: false
 					});
-					clearInterval(_this.updateInterval);
+					clearInterval(this.updateInterval);
 				}
 			});
 		}
 	}
 
 	handleVoteChange(mode) {
-		var _this = this;
 		if (this.state.matchInfo !== 'null') {
 			if (mode === 'add') {
 				axios
@@ -146,8 +219,7 @@ class AdminContent extends React.Component {
 					})
 					.then(res => {
 						if (res.status === 200 && !res.data.error) {
-							console.log(res.data);
-							_this.setState(prevState => {
+							this.setState(prevState => {
 								var newVotes = {
 									a: res.data.votesA,
 									b: res.data.votesB,
@@ -175,8 +247,7 @@ class AdminContent extends React.Component {
 					})
 					.then(res => {
 						if (res.status === 200 && !res.data.error) {
-							console.log(res.data);
-							_this.setState(prevState => {
+							this.setState(prevState => {
 								var newVotes = {
 									a: res.data.votesA,
 									b: res.data.votesB,

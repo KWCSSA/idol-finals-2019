@@ -31,8 +31,9 @@ module.exports = (app, match) => {
 		var audienceID = req.user.id;
 		var { candidate } = req.body;
 		var matchID = match.getMatchID();
+		var matchFormat = match.getMatchFormat();
 		if (match.isVoting()) {
-			var result = await newVote(candidate, audienceID, matchID);
+			var result = await newVote(candidate, audienceID, matchID, matchFormat);
 			if (!result.error) {
 				await match.addVote('Audience', candidate, 1);
 				res.send({ error: null });

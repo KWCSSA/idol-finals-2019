@@ -6,7 +6,7 @@ const { sysLogger } = require('./Logger');
 module.exports.generateNewAudiences = async amount => {
 	var startID = Date.now() * 2;
 	for (let i = 0; i < amount; ++i) {
-		var audienceID = startID + i * 10000;
+		var audienceID = `${startID + i * 12345}`;
 		var audience = new AudienceModel({ audienceID, votes: [] });
 		await audience.save();
 		sysLogger.log('info', `New audience generated: ${audienceID}`);

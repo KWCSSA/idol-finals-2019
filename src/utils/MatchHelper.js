@@ -4,7 +4,7 @@ const MatchModel = mongoose.model('match');
 const { sysLogger } = require('./Logger');
 
 module.exports.generateNewMatch = async matchFormat => {
-	var matchID = Date.now() * 3;
+	var matchID = `${Date.now() * 3}`;
 	var match = new MatchModel({
 		matchID,
 		matchFormat,

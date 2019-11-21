@@ -2,18 +2,17 @@ import React from 'react';
 import axios from 'axios';
 
 var serverAddress = '';
+axios.defaults.withCredentials = true;
 
 if (process.env.NODE_ENV !== 'production') {
-	serverAddress = 'http://localhost:4000';
-	axios.defaults.withCredentials = true;
+	serverAddress = 'http://localhost:9898';
 }
 
 class Audience extends React.Component {
-	state = { auth: false, regCode: '', message: { error: false, text: '-' } };
+	state = { auth: false, regCode: '', message: { error: false, text: '-' }, loginError: '' };
 
 	componentDidMount() {
 		axios.get(`${serverAddress}/audience/status`).then(res => {
-			console.log(res);
 			if (res.status === 200 && res.data.isAudience) {
 				this.setState({ auth: true });
 			}
@@ -21,7 +20,6 @@ class Audience extends React.Component {
 	}
 
 	handleVoteClick(candidate) {
-		console.log(candidate);
 		axios
 			.post(`${serverAddress}/api/audience/vote/`, { candidate })
 			.then(res => {
@@ -102,11 +100,22 @@ class Audience extends React.Component {
 
 	handleLoginSubmit(event) {
 		event.preventDefault();
-		axios.post(`${serverAddress}/audience/login`, { username: 'audience', password: this.state.regCode }).then(res => {
-			if (res.status === 200 && res.data.isAudience) {
-				this.setState({ auth: true });
-			}
-		});
+		axios
+			.post(`${serverAddress}/audience/login`, { username: 'audience', password: this.state.regCode })
+			.then(res => {
+				if (res.status === 200 && res.data.isAudience) {
+					this.setState({ auth: true, loginError: '' });
+				} else {
+					this.setState({
+						loginError: '登陆失败，请确认注册码输入正确'
+					});
+				}
+			})
+			.catch(err => {
+				this.setState({
+					loginError: '登陆失败，请确认注册码输入正确'
+				});
+			});
 	}
 
 	handleLoginInputChange(value) {
@@ -128,6 +137,7 @@ class Audience extends React.Component {
 							value={this.state.regCode}
 							onChange={e => this.handleLoginInputChange(e.target.value)}
 						/>
+						<small className='text-danger'>{this.state.loginError}</small>
 					</div>
 					<button type='submit' className='btn btn-primary w-100'>
 						登陆
