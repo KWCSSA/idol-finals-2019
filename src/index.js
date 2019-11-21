@@ -131,11 +131,18 @@ app.put("/changeMode", (req, res) => {
     function(err, docs) {
       if (err) return handleError(err);
       else {
+        data.mode.value = req.body.value;
         res.send({ status: "success" });
       }
     }
   );
 });
+
+//----------------match------------------------
+
+app.get("/currentMatch", (req, res) => {
+  res.send({currentMatch: data.currentMatch});
+})
 
 //----------------vote--------------------------
 
@@ -209,52 +216,68 @@ app.post("/voteCandidate", (req, res) => {
 
   // if the mode value is "1/2", reject vote=3 and vote=4
   // and if the mode value is "1/3", reject vote=4
-  
-  if (data.mode.value === "1/2" && (req.body.candidate == 3 || req.body.candidate == 4)){
+  const voteCandidate = req.body.candidate.toString();
+
+  if (data.mode.value === "1/2" && (voteCandidate === "3" || voteCandidate === "4")){
     res.send({status: "failure: 1/2"});
-  } else if (data.mode.value === "1/3" && req.body.candidate == 4){
+  } else if (data.mode.value === "1/3" && voteCandidate === "4"){
     res.send({status: "failure: 1/3"});
+  } else {
+    singleVoteModel.find(
+      {id: req.body.id, matchID: data.currentMatch},
+      function(err, singleVoteModels){
+        if (err) return handleError(err);
+        else {
+          if (singleVoteModels.length !== 0){
+            res.send({status: "already voted", currentVotes: singleVoteModels, currentMatch: data.currentMatch});
+          } else {
+            var newSingleVote = new singleVoteModel({
+              id: req.body.id,
+              matchID: req.body.matchID,
+              candidate: voteCandidate,
+              time: req.body.time
+            });
+            newSingleVote.save(function(err, back) {
+              if (err) return handleError(err);
+            });
+          
+            // find the voteModel with the corresponding MatchID and modify it based on req.data.candidate
+          
+            voteModel.find(
+              { id: data.currentMatch},
+              function(err, voteModels){
+                if (err) return handleError(err);
+                else {
+                  if (voteModels[0] == null) {
+                    res.send({status: "failure: no vote models"});
+                  } else {
+                    voteModel.findOneAndUpdate(
+                      { id: data.currentMatch },
+                      {
+                        A_vote: (voteCandidate === "1") ? voteModels[0].A_vote + 1: voteModels[0].A_vote,
+                        B_vote: (voteCandidate === "2") ? voteModels[0].B_vote + 1: voteModels[0].B_vote,
+                        C_vote: (voteCandidate === "3") ? voteModels[0].C_vote + 1: voteModels[0].C_vote,
+                        D_vote: (voteCandidate === "4") ? voteModels[0].D_vote + 1: voteModels[0].D_vote,
+                      },
+                      {
+                        new: true
+                      },
+                      function(err) {
+                        if (err) return handleError(err);
+                        else {
+                          res.send({ status: "success", singleVoteModels: singleVoteModels, currentMatch: data.currentMatch });
+                        }
+                      }
+                    );
+                  }
+                }
+              }
+            );
+          }
+        }
+      });
   }
 
-  var newSingleVote = new singleVoteModel({
-    id: req.body.id,
-    matchID: req.body.matchID,
-    candidate: req.body.candidate,
-    time: req.body.time
-  });
-  newSingleVote.save(function(err, back) {
-    if (err) return handleError(err);
-  });
-
-  // find the voteModel with the corresponding MatchID and modify it based on req.data.candidate
-
-  voteModel.find(
-    { id: data.currentMatch},
-    function(err, voteModels){
-      if (err) return handleError(err);
-      else {
-        if (voteModels[0] == null) res.send({status: "failure: no vote models"});
-        voteModel.findOneAndUpdate(
-          { id: data.currentMatch },
-          {
-            A_vote: (req.body.candidate === 1) ? voteModels[0].A_vote + 1: voteModels[0].A_vote,
-            B_vote: (req.body.candidate === 2) ? voteModels[0].B_vote + 1: voteModels[0].B_vote,
-            C_vote: (req.body.candidate === 3) ? voteModels[0].C_vote + 1: voteModels[0].C_vote,
-            D_vote: (req.body.candidate === 4) ? voteModels[0].D_vote + 1: voteModels[0].D_vote,
-          },
-          {
-            new: true
-          },
-          function(err) {
-            if (err) return handleError(err);
-            else {
-              res.send({ status: "success" });
-            }
-          }
-        );
-      }
-    }
-  );
 });
 
 //----------------state--------------------------
@@ -341,7 +364,7 @@ app.get("/allID", (req, res) => {
 });
 
 app.get("/deleteAllID", (req, res) => {
-  idModel.deleteMany({loginStatus: false}, function(err, back) {
+  idModel.deleteMany({}, function(err, back) {
     if (err) return handleError(err);
     else {
       res.send({status:"success"});
