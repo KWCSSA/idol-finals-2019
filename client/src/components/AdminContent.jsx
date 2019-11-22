@@ -13,6 +13,13 @@ class AdminContent extends React.Component {
 		isVoting: false,
 		matchFormat: '4-1',
 		matchInfo: 'null',
+		matchTitle: '',
+		matchCandidates: {
+			A: '',
+			B: '',
+			C: '',
+			D: ''
+		},
 		votes: { a: 0, b: 0, c: 0, d: 0 },
 		candidate: '1',
 		voteInput: ''
@@ -21,8 +28,23 @@ class AdminContent extends React.Component {
 	componentDidMount() {
 		axios.get(`${serverAddress}/api/admin/getMatchInfo`).then(res => {
 			if (res.status === 200 && res.data.id) {
+				var { id, format, title, candidates } = res.data;
+				var candidateString = '';
+				if (candidates.A) {
+					candidateString += ` | A : ${candidates.A}`;
+				}
+				if (candidates.B) {
+					candidateString += ` | B : ${candidates.B}`;
+				}
+				if (candidates.C) {
+					candidateString += ` | C : ${candidates.C}`;
+				}
+				if (candidates.D) {
+					candidateString += ` | D : ${candidates.D}`;
+				}
 				this.setState({
-					matchInfo: `${res.data.id} - ${res.data.format.replace('-', '选')}`
+					matchInfo: `${id} | ${title} | ${format.replace('-', '选')}${candidateString}`,
+					votes: { a: 0, b: 0, c: 0, d: 0 }
 				});
 				axios
 					.get(`${serverAddress}/api/results`)
@@ -124,11 +146,29 @@ class AdminContent extends React.Component {
 
 	generateNewMatch() {
 		axios
-			.post(`${serverAddress}/api/admin/generateNewMatch`, { matchFormat: this.state.matchFormat })
+			.post(`${serverAddress}/api/admin/generateNewMatch`, {
+				format: this.state.matchFormat,
+				candidates: this.state.matchCandidates,
+				title: this.state.matchTitle
+			})
 			.then(res => {
 				if (res.status === 200) {
+					var { id, format, title, candidates } = res.data;
+					var candidateString = '';
+					if (candidates.A) {
+						candidateString += ` | A : ${candidates.A}`;
+					}
+					if (candidates.B) {
+						candidateString += ` | B : ${candidates.B}`;
+					}
+					if (candidates.C) {
+						candidateString += ` | C : ${candidates.C}`;
+					}
+					if (candidates.D) {
+						candidateString += ` | D : ${candidates.D}`;
+					}
 					this.setState({
-						matchInfo: `${res.data.id} - ${res.data.format.replace('-', '选')}`,
+						matchInfo: `${id} | ${title} | ${format.replace('-', '选')}${candidateString}`,
 						votes: { a: 0, b: 0, c: 0, d: 0 }
 					});
 				} else {
@@ -271,6 +311,22 @@ class AdminContent extends React.Component {
 		}
 	}
 
+	handleCandidateInputChange(field, value) {
+		this.setState(prevState => {
+			var newCandidates = { ...prevState.matchCandidates };
+			newCandidates[field] = value;
+			return {
+				matchCandidates: newCandidates
+			};
+		});
+	}
+
+	handleMatchTitleChange(value) {
+		this.setState({
+			matchTitle: value
+		});
+	}
+
 	render() {
 		return (
 			<div className='container'>
@@ -285,13 +341,10 @@ class AdminContent extends React.Component {
 							生成观众注册码
 						</button>
 					</li>
-					<li className='list-group-item d-flex flex-column align-items-center'>
-						<h3>此轮投票ID</h3>
-						<h4>{this.state.matchInfo}</h4>
-					</li>
-					<li className='list-group-item text-center'>
+					<li className='list-group-item'>
+						<h3 className='w-100 text-center'>投票设置</h3>
 						<div className='form-group'>
-							<h3>投票模式</h3>
+							<label>投票制</label>
 							<select
 								className='form-control'
 								onChange={e => this.handleModeChange(e.target.value)}
@@ -302,6 +355,52 @@ class AdminContent extends React.Component {
 								<option value='2-1'>二选一</option>
 							</select>
 						</div>
+						<label>选手名字</label>
+						<div className='form-group d-flex align-items-center'>
+							<label className='mr-2'>A:</label>
+							<input
+								className='form-control mr-3'
+								onChange={e => this.handleCandidateInputChange('A', e.target.value)}
+								value={this.state.matchCandidates.A}
+							/>
+							<label className='mr-2'>B:</label>
+							<input
+								className='form-control mr-3'
+								onChange={e => this.handleCandidateInputChange('B', e.target.value)}
+								value={this.state.matchCandidates.B}
+							/>
+							<label className='mr-2'>C:</label>
+							<input
+								className='form-control mr-3'
+								onChange={e => this.handleCandidateInputChange('C', e.target.value)}
+								value={this.state.matchCandidates.C}
+								disabled={this.state.matchFormat === '4-1' || this.state.matchFormat === '3-1' ? false : true}
+							/>
+							<label className='mr-2'>D:</label>
+							<input
+								className='form-control mr-3'
+								onChange={e => this.handleCandidateInputChange('D', e.target.value)}
+								value={this.state.matchCandidates.D}
+								disabled={this.state.matchFormat === '4-1' ? false : true}
+							/>
+						</div>
+						<div className='form-group'>
+							<label>本轮名称</label>
+							<input
+								className='form-control'
+								onChange={e => this.handleMatchTitleChange(e.target.value)}
+								value={this.state.matchTitle}
+							/>
+						</div>
+						<div className='form-group text-center'>
+							<button className='btn btn-danger w-50' onClick={() => this.generateNewMatch()}>
+								生成新一轮投票
+							</button>
+						</div>
+					</li>
+					<li className='list-group-item d-flex flex-column align-items-center'>
+						<h3>此轮投票ID</h3>
+						<h4>{this.state.matchInfo}</h4>
 					</li>
 					<li className='list-group-item d-flex flex-column align-items-center'>
 						<h4>A: {this.state.votes.a}</h4>
@@ -352,11 +451,6 @@ class AdminContent extends React.Component {
 								停止投票
 							</button>
 						</div>
-					</li>
-					<li className='list-group-item text-center'>
-						<button className='btn btn-danger w-50' onClick={() => this.generateNewMatch()}>
-							生成新一轮投票
-						</button>
 					</li>
 				</ul>
 			</div>

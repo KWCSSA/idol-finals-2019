@@ -3,11 +3,13 @@ const mongoose = require('mongoose');
 const MatchModel = mongoose.model('match');
 const { sysLogger } = require('./Logger');
 
-module.exports.generateNewMatch = async matchFormat => {
+module.exports.generateNewMatch = async (matchFormat, matchTitle, candidates) => {
 	var matchID = `${Date.now() * 3}`;
 	var match = new MatchModel({
 		matchID,
 		matchFormat,
+		matchTitle,
+		matchCandidates: [ `A: ${candidates.A}`, `B: ${candidates.B}`, `C: ${candidates.C}`, `D: ${candidates.D}` ],
 		votesA: 0,
 		votesB: 0,
 		votesC: 0,
@@ -16,7 +18,21 @@ module.exports.generateNewMatch = async matchFormat => {
 		endTime: 0
 	});
 	await match.save();
-	sysLogger.log('info', `New match generated: ${matchID} - ${matchFormat}`);
+	var candidateString = '';
+	if (candidates.A) {
+		candidateString += ` | A : ${candidates.A}`;
+	}
+	if (candidates.B) {
+		candidateString += ` | B : ${candidates.B}`;
+	}
+	if (candidates.C) {
+		candidateString += ` | C : ${candidates.C}`;
+	}
+	if (candidates.D) {
+		candidateString += ` | D : ${candidates.D}`;
+	}
+	this.se;
+	sysLogger.log('info', `New match generated: ${matchID} | ${matchTitle} | ${matchFormat}${candidateString}`);
 	return matchID;
 };
 
@@ -89,5 +105,5 @@ module.exports.endMatch = async matchID => {
 	var match = await MatchModel.findOne({ matchID });
 	match.endTime = Date.now();
 	await match.save();
-	sysLogger.log('info', `Voting started for match ${matchID}`);
+	sysLogger.log('info', `Voting ended for match ${matchID}`);
 };

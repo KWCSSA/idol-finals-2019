@@ -8,7 +8,12 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 class Results extends React.Component {
-	state = { results: { votesA: 0, votesB: 0, votesC: 0, votesD: 0 }, showResults: [ false, false, false, false ] };
+	state = {
+		results: { votesA: 0, votesB: 0, votesC: 0, votesD: 0 },
+		showResults: [ false, false, false, false ],
+		candidates: { A: '', B: '', C: '', D: '' },
+		title: ''
+	};
 
 	componentDidMount() {
 		setInterval(() => {
@@ -21,7 +26,7 @@ class Results extends React.Component {
 					}
 				}
 			});
-			axios.get(`${serverAddress}/api/format`).then(res => {
+			axios.get(`${serverAddress}/api/matchInfo`).then(res => {
 				if (res.status === 200) {
 					if (res.data.format === '4-1') {
 						let showResults = [ true, true, true, true ];
@@ -39,6 +44,10 @@ class Results extends React.Component {
 							this.setState({ showResults });
 						}
 					}
+					this.setState({
+						candidates: res.data.candidates,
+						title: res.data.title
+					});
 				}
 			});
 		}, 500);
@@ -72,7 +81,7 @@ class Results extends React.Component {
 		return (
 			<div style={{ height: '100vh', width: '100vw', background: 'black', color: 'white' }}>
 				<div style={{ height: '15vh', width: '100vw' }} className='d-flex justify-content-center align-items-center'>
-					<img src='/banner.jpg' style={{ maxHeight: '100%', maxWidth: '100%' }} alt='banner' />
+					<div style={{ fontSize: '90px' }}>{this.state.title}投票结果</div>
 				</div>
 				<div
 					style={{ height: '85vh', width: '100vw' }}
@@ -81,12 +90,16 @@ class Results extends React.Component {
 					{this.state.showResults[0] ? (
 						<div
 							className='d-flex flex-column justify-content-end align-items-center'
-							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+							style={{ height: '80%', width: '10%', marginLeft: '80px', marginRight: '100px' }}
 						>
 							<h3>{this.state.results.votesA}</h3>
 							<div className='w-100 mt-2' style={styles[0]} />
-							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-								A
+							<div
+								className='w-100 text-center mt-3'
+								style={{ fontSize: '40px', display: 'flex', flexDirection: 'column' }}
+							>
+								<span>A</span>
+								<span>{this.state.candidates.A}</span>
 							</div>
 						</div>
 					) : (
@@ -95,12 +108,16 @@ class Results extends React.Component {
 					{this.state.showResults[1] ? (
 						<div
 							className='d-flex flex-column justify-content-end align-items-center'
-							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+							style={{ height: '80%', width: '10%', marginLeft: '80px', marginRight: '80px' }}
 						>
 							<h3>{this.state.results.votesB}</h3>
 							<div className='w-100 mt-2' style={styles[1]} />
-							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-								B
+							<div
+								className='w-100 text-center mt-3'
+								style={{ fontSize: '40px', display: 'flex', flexDirection: 'column' }}
+							>
+								<span>B</span>
+								<span>{this.state.candidates.B}</span>
 							</div>
 						</div>
 					) : (
@@ -109,12 +126,16 @@ class Results extends React.Component {
 					{this.state.showResults[2] ? (
 						<div
 							className='d-flex flex-column justify-content-end align-items-center'
-							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+							style={{ height: '80%', width: '10%', marginLeft: '80px', marginRight: '80px' }}
 						>
 							<h3>{this.state.results.votesC}</h3>
 							<div className='w-100 mt-2' style={styles[2]} />
-							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-								C
+							<div
+								className='w-100 text-center mt-3'
+								style={{ fontSize: '40px', display: 'flex', flexDirection: 'column' }}
+							>
+								<span>C</span>
+								<span>{this.state.candidates.C}</span>
 							</div>
 						</div>
 					) : (
@@ -123,12 +144,16 @@ class Results extends React.Component {
 					{this.state.showResults[3] ? (
 						<div
 							className='d-flex flex-column justify-content-end align-items-center'
-							style={{ height: '80%', width: '10%', marginLeft: '60px', marginRight: '60px' }}
+							style={{ height: '80%', width: '10%', marginLeft: '80px', marginRight: '80px' }}
 						>
 							<h3>{this.state.results.votesD}</h3>
 							<div className='w-100 mt-2' style={styles[3]} />
-							<div className='w-100 text-center mt-3' style={{ fontSize: '50px' }}>
-								D
+							<div
+								className='w-100 text-center mt-3'
+								style={{ fontSize: '40px', display: 'flex', flexDirection: 'column' }}
+							>
+								<span>D</span>
+								<span>{this.state.candidates.D}</span>
 							</div>
 						</div>
 					) : (

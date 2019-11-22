@@ -4,6 +4,7 @@ const voteSchema = new Schema({
 	from: String,
 	to: Number,
 	matchID: String,
+	matchTitle: String,
 	timestamp: Number
 });
 

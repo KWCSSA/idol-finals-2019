@@ -9,19 +9,80 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 class Audience extends React.Component {
-	state = { auth: false, regCode: '', message: { error: false, text: '-' }, loginError: '' };
+	state = {
+		auth: false,
+		matchTitle: '请等待',
+		matchCandidates: { A: '', B: '', C: '', D: '' },
+		showChoice: [ false, false, false, false ],
+		regCode: '',
+		message: { error: false, text: '' },
+		loginError: '',
+		doInit: false
+	};
 
 	componentDidMount() {
 		axios.get(`${serverAddress}/audience/status`).then(res => {
 			if (res.status === 200 && res.data.isAudience) {
-				this.setState({ auth: true });
+				this.setState({ auth: true, doInit: true });
 			}
 		});
 	}
 
+	componentDidUpdate() {
+		if (this.state.doInit) {
+			this.setState({
+				doInit: false
+			});
+			axios.get(`${serverAddress}/api/matchInfo`).then(res => {
+				if (res.status === 200 && res.data.title) {
+					this.setState({
+						matchCandidates: res.data.candidates,
+						matchTitle: res.data.title
+					});
+					if (res.data.format === '4-1') {
+						this.setState({
+							showChoice: [ true, true, true, true ]
+						});
+					} else if (res.data.format === '3-1') {
+						this.setState({
+							showChoice: [ true, true, true, false ]
+						});
+					} else if (res.data.format === '2-1') {
+						this.setState({
+							showChoice: [ true, true, false, false ]
+						});
+					}
+				}
+			});
+			setInterval(() => {
+				axios.get(`${serverAddress}/api/matchInfo`).then(res => {
+					if (res.status === 200 && res.data.title) {
+						this.setState({
+							matchCandidates: res.data.candidates,
+							matchTitle: res.data.title
+						});
+						if (res.data.format === '4-1') {
+							this.setState({
+								showChoice: [ true, true, true, true ]
+							});
+						} else if (res.data.format === '3-1') {
+							this.setState({
+								showChoice: [ true, true, true, false ]
+							});
+						} else if (res.data.format === '2-1') {
+							this.setState({
+								showChoice: [ true, true, false, false ]
+							});
+						}
+					}
+				});
+			}, 5000);
+		}
+	}
+
 	handleVoteClick(candidate) {
 		axios
-			.post(`${serverAddress}/api/audience/vote/`, { candidate })
+			.post(`${serverAddress}/api/audience/vote`, { candidate })
 			.then(res => {
 				if (res.status === 200) {
 					if (!res.data.error) {
@@ -40,7 +101,7 @@ class Audience extends React.Component {
 				}
 				setTimeout(() => {
 					this.setState({
-						message: { error: false, text: '-' }
+						message: { error: false, text: '' }
 					});
 				}, 2000);
 			})
@@ -55,45 +116,84 @@ class Audience extends React.Component {
 				style={{ height: '100vh', width: '100vw', background: 'black', color: 'white' }}
 				className='d-flex flex-column justify-content-center align-items-center'
 			>
-				<div
-					style={
-						this.state.message.error ? (
-							{ color: 'red', fontWeight: '700', fontSize: '40px' }
+				<div style={{ height: '80%', width: '90%' }}>
+					<div
+						style={{ height: '10%', width: '100%', fontSize: '4vh', fontWeight: '700' }}
+						className='d-flex flex-column justify-content-center align-items-center'
+					>
+						{this.state.matchTitle}
+					</div>
+					<div
+						style={{ height: '10%', width: '100%', fontSize: '4vh', fontWeight: '700' }}
+						className='d-flex flex-column justify-content-center align-items-center'
+					>
+						<div style={this.state.message.error ? { color: 'red' } : { color: 'lime' }}>{this.state.message.text}</div>
+					</div>
+					<div
+						style={{ height: '20%', width: '100%' }}
+						className='d-flex flex-column justify-content-center align-items-center'
+					>
+						{this.state.showChoice[0] ? (
+							<button
+								className='btn btn-outline-warning mt-3 mb-3'
+								style={{ height: '90%', width: '90%', fontSize: '30px', fontWeight: '500' }}
+								onClick={() => this.handleVoteClick(1)}
+							>
+								A - {this.state.matchCandidates.A}
+							</button>
 						) : (
-							{ color: 'lime', fontWeight: '700', fontSize: '40px' }
-						)
-					}
-				>
-					{this.state.message.text}
+							''
+						)}
+					</div>
+					<div
+						style={{ height: '20%', width: '100%' }}
+						className='d-flex flex-column justify-content-center align-items-center'
+					>
+						{this.state.showChoice[1] ? (
+							<button
+								className='btn btn-outline-warning mt-3 mb-3'
+								style={{ height: '90%', width: '90%', fontSize: '30px', fontWeight: '500' }}
+								onClick={() => this.handleVoteClick(1)}
+							>
+								B - {this.state.matchCandidates.B}
+							</button>
+						) : (
+							''
+						)}
+					</div>
+					<div
+						style={{ height: '20%', width: '100%' }}
+						className='d-flex flex-column justify-content-center align-items-center'
+					>
+						{this.state.showChoice[2] ? (
+							<button
+								className='btn btn-outline-warning mt-3 mb-3'
+								style={{ height: '90%', width: '90%', fontSize: '30px', fontWeight: '500' }}
+								onClick={() => this.handleVoteClick(1)}
+							>
+								C - {this.state.matchCandidates.C}
+							</button>
+						) : (
+							''
+						)}
+					</div>
+					<div
+						style={{ height: '20%', width: '100%' }}
+						className='d-flex flex-column justify-content-center align-items-center'
+					>
+						{this.state.showChoice[3] ? (
+							<button
+								className='btn btn-outline-warning mt-3 mb-3'
+								style={{ height: '90%', width: '90%', fontSize: '30px', fontWeight: '500' }}
+								onClick={() => this.handleVoteClick(1)}
+							>
+								D - {this.state.matchCandidates.D}
+							</button>
+						) : (
+							''
+						)}
+					</div>
 				</div>
-				<button
-					className='btn btn-outline-warning mt-3 mb-3'
-					style={{ height: '13vh', width: '70vw', fontSize: '40px', fontWeight: '700' }}
-					onClick={() => this.handleVoteClick(1)}
-				>
-					A
-				</button>
-				<button
-					className='btn btn-outline-warning mt-3 mb-3'
-					style={{ height: '13vh', width: '70vw', fontSize: '40px', fontWeight: '700' }}
-					onClick={() => this.handleVoteClick(2)}
-				>
-					B
-				</button>
-				<button
-					className='btn btn-outline-warning mt-3 mb-3'
-					style={{ height: '13vh', width: '70vw', fontSize: '40px', fontWeight: '700' }}
-					onClick={() => this.handleVoteClick(3)}
-				>
-					C
-				</button>
-				<button
-					className='btn btn-outline-warning mt-3 mb-3'
-					style={{ height: '13vh', width: '70vw', fontSize: '40px', fontWeight: '700' }}
-					onClick={() => this.handleVoteClick(4)}
-				>
-					D
-				</button>
 			</div>
 		);
 	}
@@ -104,7 +204,7 @@ class Audience extends React.Component {
 			.post(`${serverAddress}/audience/login`, { username: 'audience', password: this.state.regCode })
 			.then(res => {
 				if (res.status === 200 && res.data.isAudience) {
-					this.setState({ auth: true, loginError: '' });
+					this.setState({ auth: true, loginError: '', inti: true });
 				} else {
 					this.setState({
 						loginError: '登陆失败，请确认注册码输入正确'

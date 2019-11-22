@@ -3,6 +3,8 @@ const { Schema } = mongoose;
 const matchSchema = new Schema({
 	matchID: String,
 	matchFormat: String,
+	matchTitle: String,
+	matchCandidates: Array,
 	votesA: Number,
 	votesB: Number,
 	votesC: Number,

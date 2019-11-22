@@ -29,12 +29,24 @@ module.exports = (app, match) => {
 	});
 
 	app.post('/api/admin/generateNewMatch', async (req, res) => {
-		await match.generateNewMatch(req.body.matchFormat);
-		res.send({ id: match.getMatchID(), format: match.getMatchFormat() });
+		var { format, candidates, title } = req.body;
+		await match.generateNewMatch(format, candidates, title);
+		res.send({
+			id: match.getMatchID(),
+			format: match.getMatchFormat(),
+			candidates: match.getMatchCandidates(),
+			title: match.getMatchTitle()
+		});
 	});
 
 	app.get('/api/admin/getMatchInfo', (req, res) => {
-		res.send({ id: match.getMatchID(), format: match.getMatchFormat(), isVoting: match.isVoting() });
+		res.send({
+			id: match.getMatchID(),
+			format: match.getMatchFormat(),
+			title: match.getMatchTitle(),
+			candidates: match.getMatchCandidates(),
+			isVoting: match.isVoting()
+		});
 	});
 
 	app.post('/api/admin/startVoting', (req, res) => {

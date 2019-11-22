@@ -4,7 +4,7 @@ const VoteModel = mongoose.model('vote');
 const { checkVoteExist, addAudienceVote, checkAudienceExist } = require('./AudienceHelper');
 const { sysLogger } = require('./Logger');
 
-module.exports.newVote = async (candidate, audienceID, matchID, matchFormat) => {
+module.exports.newVote = async (candidate, audienceID, matchID, matchTitle, matchFormat) => {
 	candidate = parseInt(candidate);
 	if (!await checkAudienceExist(audienceID)) {
 		sysLogger.log('error', `Audience ${audienceID} does not exist`);
@@ -29,6 +29,7 @@ module.exports.newVote = async (candidate, audienceID, matchID, matchFormat) => 
 		from: audienceID,
 		to: candidate,
 		matchID: matchID,
+		matchTitle: matchTitle,
 		timestamp: Date.now()
 	});
 	await newVote.save();

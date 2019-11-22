@@ -2,63 +2,80 @@ const { generateNewMatch, addVote, changeVote, getVotes, startMatch, endMatch } 
 
 class Match {
 	constructor() {
-		this.matchState = 0;
-		this.matchID = null;
-		this.matchFormat = '';
+		this.state = 0;
+		this.id = null;
+		this.format = null;
+		this.title = null;
+		this.candidates = {
+			A: null,
+			B: null,
+			C: null,
+			D: null
+		};
 		console.log('Match instance created');
 	}
 
-	async generateNewMatch(format) {
+	async generateNewMatch(format, candidates, title) {
 		await this.endVoting();
-		var matchID = await generateNewMatch(format.replace('-', '选'));
-		this.matchID = matchID;
-		this.matchFormat = format;
-		this.matchState = 0;
+		var matchID = await generateNewMatch(format.replace('-', '选'), title, candidates);
+		this.id = matchID;
+		this.format = format;
+		this.candidates = candidates;
+		this.state = 0;
+		this.title = title;
 	}
 
 	getMatchID() {
-		return this.matchID;
+		return this.id;
 	}
 
 	getMatchFormat() {
-		return this.matchFormat;
+		return this.format;
+	}
+
+	getMatchCandidates() {
+		return this.candidates;
+	}
+
+	getMatchTitle() {
+		return this.title;
 	}
 
 	isVoting() {
-		return this.matchState === 1;
+		return this.state === 1;
 	}
 
 	async addVote(source, candidate, count) {
-		if (this.matchID) {
-			await addVote(this.matchID, source, candidate, count);
+		if (this.id) {
+			await addVote(this.id, source, candidate, count);
 		}
 	}
 
 	async changeVote(candidate, count) {
-		if (this.matchID) {
-			await changeVote(this.matchID, candidate, count);
+		if (this.id) {
+			await changeVote(this.id, candidate, count);
 		}
 	}
 
 	async getVotes() {
-		if (this.matchID) {
-			return await getVotes(this.matchID);
+		if (this.id) {
+			return await getVotes(this.id);
 		} else {
 			return { error: true };
 		}
 	}
 
 	async startVoting() {
-		if (this.matchID && this.matchState !== 1) {
-			await startMatch(this.matchID);
-			this.matchState = 1;
+		if (this.id && this.state !== 1) {
+			await startMatch(this.id);
+			this.state = 1;
 		}
 	}
 
 	async endVoting() {
-		if (this.matchID && this.matchState !== 0) {
-			await endMatch(this.matchID);
-			this.matchState = 0;
+		if (this.id && this.state !== 0) {
+			await endMatch(this.id);
+			this.state = 0;
 		}
 	}
 }

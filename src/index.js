@@ -166,8 +166,8 @@ app.get('/api/isVoting', (req, res) => {
 	res.send({ isVoting: match.isVoting() });
 });
 
-app.get('/api/format', (req, res) => {
-	res.send({ format: match.getMatchFormat() });
+app.get('/api/matchInfo', (req, res) => {
+	res.send({ format: match.getMatchFormat(), title: match.getMatchTitle(), candidates: match.getMatchCandidates() });
 });
 
 // serve react
