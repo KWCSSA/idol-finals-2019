@@ -169,7 +169,14 @@ class AdminContent extends React.Component {
 					}
 					this.setState({
 						matchInfo: `${id} | ${title} | ${format.replace('-', '选')}${candidateString}`,
-						votes: { a: 0, b: 0, c: 0, d: 0 }
+						votes: { a: 0, b: 0, c: 0, d: 0 },
+						matchTitle: '',
+						matchCandidates: {
+							A: '',
+							B: '',
+							C: '',
+							D: ''
+						}
 					});
 				} else {
 					window.location.reload();

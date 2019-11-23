@@ -153,7 +153,7 @@ class Audience extends React.Component {
 							<button
 								className='btn btn-outline-warning mt-3 mb-3'
 								style={{ height: '90%', width: '90%', fontSize: '30px', fontWeight: '500' }}
-								onClick={() => this.handleVoteClick(1)}
+								onClick={() => this.handleVoteClick(2)}
 							>
 								B - {this.state.matchCandidates.B}
 							</button>
@@ -169,7 +169,7 @@ class Audience extends React.Component {
 							<button
 								className='btn btn-outline-warning mt-3 mb-3'
 								style={{ height: '90%', width: '90%', fontSize: '30px', fontWeight: '500' }}
-								onClick={() => this.handleVoteClick(1)}
+								onClick={() => this.handleVoteClick(3)}
 							>
 								C - {this.state.matchCandidates.C}
 							</button>
@@ -185,7 +185,7 @@ class Audience extends React.Component {
 							<button
 								className='btn btn-outline-warning mt-3 mb-3'
 								style={{ height: '90%', width: '90%', fontSize: '30px', fontWeight: '500' }}
-								onClick={() => this.handleVoteClick(1)}
+								onClick={() => this.handleVoteClick(4)}
 							>
 								D - {this.state.matchCandidates.D}
 							</button>
@@ -204,7 +204,7 @@ class Audience extends React.Component {
 			.post(`${serverAddress}/audience/login`, { username: 'audience', password: this.state.regCode })
 			.then(res => {
 				if (res.status === 200 && res.data.isAudience) {
-					this.setState({ auth: true, loginError: '', inti: true });
+					this.setState({ auth: true, loginError: '', doInit: true });
 				} else {
 					this.setState({
 						loginError: '登陆失败，请确认注册码输入正确'
